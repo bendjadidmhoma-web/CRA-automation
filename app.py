@@ -1,7 +1,9 @@
 import os
 import re
-from flask import Flask, request
+import base64
 import requests
+import subprocess
+from flask import Flask, request
 
 app = Flask(__name__)
 
@@ -45,10 +47,24 @@ def webhook():
 
     nb_jours = match.group(1)
 
-    sujet = "CRA automatique"
-    contenu = f"CRA généré avec {nb_jours} jours."
+    mois = 5
+    annee = 2026
 
-    envoyer_mail(sujet, contenu)
+    subprocess.run([
+        "python",
+        "generer_cra_v3.py",
+        "--mois", str(mois),
+        "--annee", str(annee),
+        "--nb-jours", str(nb_jours)
+    ])
+
+    pdf_filename = f"CRA_{mois}_{annee}.pdf"
+
+    envoyer_mail(
+        subject="CRA automatique",
+        body=f"CRA généré avec {nb_jours} jours.",
+        attachment_path=pdf_filename
+    )
 
     send_telegram(chat_id, f"CRA envoyé ✅ ({nb_jours} jours)")
 
@@ -63,7 +79,10 @@ def send_telegram(chat_id, text):
         }
     )
 
-def envoyer_mail(subject, body):
+def envoyer_mail(subject, body, attachment_path):
+    with open(attachment_path, "rb") as f:
+        file_data = base64.b64encode(f.read()).decode("utf-8")
+
     response = requests.post(
         "https://api.resend.com/emails",
         headers={
@@ -74,7 +93,13 @@ def envoyer_mail(subject, body):
             "from": "onboarding@resend.dev",
             "to": MAIL_TO,
             "subject": subject,
-            "text": body
+            "text": body,
+            "attachments": [
+                {
+                    "filename": attachment_path,
+                    "content": file_data
+                }
+            ]
         }
     )
 

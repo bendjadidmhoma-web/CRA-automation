@@ -41,13 +41,28 @@ def webhook():
 
     match = re.search(r"CRA\s+(\d+)\s+(\d+)\s+(\d+)", text, re.IGNORECASE)
 
-if not match:
-    send_telegram(chat_id, "Format attendu : CRA 20 6 2026")
-    return "ok"
+    if not match:
+        send_telegram(chat_id, "Format attendu : CRA 20 6 2026")
+        return "ok"
 
-nb_jours = match.group(1)
-mois = int(match.group(2))
-annee = int(match.group(3))
+    nb_jours = match.group(1)
+    mois = int(match.group(2))
+    annee = int(match.group(3))
+
+    mois_noms = {
+        1: "Janvier",
+        2: "Fevrier",
+        3: "Mars",
+        4: "Avril",
+        5: "Mai",
+        6: "Juin",
+        7: "Juillet",
+        8: "Aout",
+        9: "Septembre",
+        10: "Octobre",
+        11: "Novembre",
+        12: "Decembre"
+    }
 
     subprocess.run([
         "python",
@@ -55,31 +70,17 @@ annee = int(match.group(3))
         "--mois", str(mois),
         "--annee", str(annee),
         "--nb-jours", str(nb_jours)
-    ])
+    ], check=True)
 
-    mois_noms = {
-    1: "Janvier",
-    2: "Fevrier",
-    3: "Mars",
-    4: "Avril",
-    5: "Mai",
-    6: "Juin",
-    7: "Juillet",
-    8: "Aout",
-    9: "Septembre",
-    10: "Octobre",
-    11: "Novembre",
-    12: "Decembre"
-}
+    pdf_filename = f"CRA_{mois_noms[mois]}_{annee}.pdf"
 
-pdf_filename = f"CRA_{mois_noms[mois]}_{annee}.pdf"
     envoyer_mail(
-        subject="CRA automatique",
-        body=f"CRA généré avec {nb_jours} jours.",
+        subject=f"CRA {mois_noms[mois]} {annee}",
+        body=f"Bonjour,\n\nVeuillez trouver ci-joint mon CRA de {mois_noms[mois]} {annee}, avec {nb_jours} jours.\n\nCordialement,\nMHOMA Ben Djadid",
         attachment_path=pdf_filename
     )
 
-    send_telegram(chat_id, f"CRA envoyé ✅ ({nb_jours} jours)")
+    send_telegram(chat_id, f"CRA envoyé ✅ ({nb_jours} jours - {mois_noms[mois]} {annee})")
 
     return "ok"
 

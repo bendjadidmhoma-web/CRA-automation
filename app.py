@@ -74,11 +74,11 @@ def envoyer_mail(subject, body):
     msg.set_content(body)
 
     with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as smtp:
-    smtp.ehlo()
-    smtp.starttls()
-    smtp.ehlo()
-    smtp.login(GMAIL_USER, GMAIL_PASSWORD)
-    smtp.send_message(msg)
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.ehlo()
+        smtp.login(GMAIL_USER, GMAIL_PASSWORD)
+        smtp.send_message(msg)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)

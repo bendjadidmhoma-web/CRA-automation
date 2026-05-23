@@ -58,7 +58,7 @@ def webhook():
         "--nb-jours", str(nb_jours)
     ])
 
-    pdf_filename = f"CRA_{mois}_{annee}.pdf"
+    pdf_filename = "CRA_Mai_2026.pdf"
 
     envoyer_mail(
         subject="CRA automatique",

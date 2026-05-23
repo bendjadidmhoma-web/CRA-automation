@@ -73,9 +73,12 @@ def envoyer_mail(subject, body):
     msg["To"] = MAIL_TO
     msg.set_content(body)
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(GMAIL_USER, GMAIL_PASSWORD)
-        smtp.send_message(msg)
+    with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as smtp:
+    smtp.ehlo()
+    smtp.starttls()
+    smtp.ehlo()
+    smtp.login(GMAIL_USER, GMAIL_PASSWORD)
+    smtp.send_message(msg)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)

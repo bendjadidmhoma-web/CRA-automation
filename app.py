@@ -39,16 +39,15 @@ def webhook():
     chat_id = data["message"]["chat"]["id"]
     text = data["message"].get("text", "")
 
-    match = re.search(r"CRA\s+(\d+)", text, re.IGNORECASE)
+    match = re.search(r"CRA\s+(\d+)\s+(\d+)\s+(\d+)", text, re.IGNORECASE)
 
-    if not match:
-        send_telegram(chat_id, "Format attendu : CRA 20")
-        return "ok"
+if not match:
+    send_telegram(chat_id, "Format attendu : CRA 20 6 2026")
+    return "ok"
 
-    nb_jours = match.group(1)
-
-    mois = 5
-    annee = 2026
+nb_jours = match.group(1)
+mois = int(match.group(2))
+annee = int(match.group(3))
 
     subprocess.run([
         "python",
@@ -58,8 +57,22 @@ def webhook():
         "--nb-jours", str(nb_jours)
     ])
 
-    pdf_filename = "CRA_Mai_2026.pdf"
+    mois_noms = {
+    1: "Janvier",
+    2: "Fevrier",
+    3: "Mars",
+    4: "Avril",
+    5: "Mai",
+    6: "Juin",
+    7: "Juillet",
+    8: "Aout",
+    9: "Septembre",
+    10: "Octobre",
+    11: "Novembre",
+    12: "Decembre"
+}
 
+pdf_filename = f"CRA_{mois_noms[mois]}_{annee}.pdf"
     envoyer_mail(
         subject="CRA automatique",
         body=f"CRA généré avec {nb_jours} jours.",

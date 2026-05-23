@@ -1,16 +1,13 @@
 import os
 import re
-import smtplib
-from email.message import EmailMessage
 from flask import Flask, request
 import requests
 
 app = Flask(__name__)
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-GMAIL_USER = os.getenv("GMAIL_USER")
-GMAIL_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
 MAIL_TO = os.getenv("MAIL_TO")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
 
@@ -67,18 +64,22 @@ def send_telegram(chat_id, text):
     )
 
 def envoyer_mail(subject, body):
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = GMAIL_USER
-    msg["To"] = MAIL_TO
-    msg.set_content(body)
+    response = requests.post(
+        "https://api.resend.com/emails",
+        headers={
+            "Authorization": f"Bearer {RESEND_API_KEY}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "from": "onboarding@resend.dev",
+            "to": MAIL_TO,
+            "subject": subject,
+            "text": body
+        }
+    )
 
-    with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as smtp:
-        smtp.ehlo()
-        smtp.starttls()
-        smtp.ehlo()
-        smtp.login(GMAIL_USER, GMAIL_PASSWORD)
-        smtp.send_message(msg)
+    if response.status_code >= 400:
+        raise Exception(f"Erreur Resend: {response.text}")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
